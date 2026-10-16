@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Customers</h1></div>
+<div class="grid2">
+  <section class="card">
+    <h2>Add customer</h2>
+    <form method="post" class="stack">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>Name <input name="name" required></label>
+      <label>Contact number <input name="contact"></label>
+      <button class="btn primary">Add Customer</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Search</h2>
+    <form method="get" class="inline-form">
+      <input name="q" value="{{ q }}" placeholder="Name or contact number…">
+      <button class="btn">Search</button>
+      <a class="btn ghost" href="{{ url_for('customers') }}">Clear</a>
+    </form>
+  </section>
+</div>
+<div class="table-wrap card">
+<table>
+  <thead><tr><th>Name</th><th>Contact</th><th class="r">Orders</th><th></th></tr></thead>
+  <tbody>
+  {% for c in rows %}
+  <tr><td><strong>{{ c.name }}</strong></td><td>{{ c.contact or '—' }}</td><td class="r">{{ c.order_count }}</td>
+      <td class="r"><a href="{{ url_for('customer_detail', customer_id=c.id) }}">View / edit</a></td></tr>
+  {% else %}<tr><td colspan="4" class="muted center">No customers found.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>Receipt {{ o.order_no }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="receipt-page">
+{% set bal = balance_of(o) %}
+<div class="receipt">
+  <div class="center"><strong class="shop">{{ shop_name }}</strong><br>{{ shop_address }}<br>{{ shop_contact }}</div>
+  <hr class="dbl"><div class="center"><strong>OFFICIAL RECEIPT</strong></div><hr class="dbl">
+  <div class="row"><span>Order No.</span><span>{{ o.order_no }}</span></div>
+  <div class="row"><span>Date</span><span>{{ o.order_date }}</span></div>
+  <div class="row"><span>Customer</span><span>{{ o.customer }}</span></div>
+  <div class="row"><span>Contact</span><span>{{ o.contact or '-' }}</span></div>
+  <div class="row"><span>Served by</span><span>{{ o.staff or '-' }}</span></div>
+  <hr>
+  <div class="row"><span>Laundry</span><span>{{ o.laundry_type }}</span></div>
+  <div class="row"><span>Service</span><span>{{ o.service }}</span></div>
+  <div class="row"><span>Weight</span><span>{{ '%.2f'|format(o.weight_kg) }} kg</span></div>
+  <div class="row"><span>Rate</span><span>{{ o.price_per_kg|peso }}/kg</span></div>
+  <hr>
+  <div class="row big"><span>TOTAL</span><span>{{ o.total|peso }}</span></div>
+  <hr>
+  <div>Payments:</div>
+  {% for p in payments %}<div class="row"><span>&nbsp;{{ p.paid_date[:10] }} {{ p.method }}</span><span>{{ p.amount|peso }}</span></div>
+  {% else %}<div class="row"><span>&nbsp;(none yet)</span><span></span></div>{% endfor %}
+  <hr>
+  <div class="row"><span>TOTAL PAID</span><span>{{ o.paid|peso }}</span></div>
+  <div class="row big"><span>BALANCE</span><span>{{ bal|peso }}</span></div>
+  <div class="row"><span>Payment status</span><span>{{ pay_status(o.total, o.paid) }}</span></div>
+  <div class="row"><span>Order status</span><span>{{ o.status }}</span></div>
+  <hr class="dbl">
+  <div class="center">Thank you for choosing us!<br>Please present this receipt upon pickup.</div>
+</div>
+<div class="center no-print" style="margin:16px">
+  <button class="btn primary" onclick="window.print()">🖨 Print</button>
+  <button class="btn ghost" onclick="window.close()">Close</button>
+</div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ c.name }}{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ c.name }}</h1><a class="btn ghost" href="{{ url_for('customers') }}">← Customers</a></div>
+<section class="card">
+  <h2>Customer details</h2>
+  <form method="post" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input name="name" value="{{ c.name }}" required>
+    <input name="contact" value="{{ c.contact }}" placeholder="Contact number">
+    <button class="btn primary">Save</button>
+  </form>
+</section>
+<h2>Order history</h2>
+<div class="table-wrap card">
+<table>
+  <thead><tr><th>Order No.</th><th>Date</th><th>Laundry</th><th class="r">Kg</th><th>Service</th><th class="r">Total</th><th class="r">Balance</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for o in history %}
+  <tr><td><a href="{{ url_for('order_detail', order_id=o.id) }}">{{ o.order_no }}</a></td><td>{{ o.order_date }}</td>
+      <td>{{ o.laundry_type }}</td><td class="r">{{ '%.2f'|format(o.weight_kg) }}</td><td>{{ o.service }}</td>
+      <td class="r">{{ o.total|peso }}</td><td class="r">{{ balance_of(o)|peso }}</td>
+      <td><span class="badge st-{{ o.status|replace(' ', '-')|lower }}">{{ o.status }}</span></td></tr>
+  {% else %}<tr><td colspan="8" class="muted center">No orders yet.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

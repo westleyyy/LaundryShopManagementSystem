@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Orders</h1>
+  <a class="btn primary" href="{{ url_for('new_order') }}">+ New Order</a>
+</div>
+<form method="get" class="filters card">
+  <input name="q" value="{{ q }}" placeholder="Search order number or customer name…" autofocus>
+  <select name="status">
+    <option>All</option>
+    {% for s in statuses %}<option {{ 'selected' if s == status }}>{{ s }}</option>{% endfor %}
+  </select>
+  <button class="btn">Search</button>
+  <a class="btn ghost" href="{{ url_for('orders') }}">Clear</a>
+</form>
+<p class="muted">{{ rows|length }} order(s) shown · Outstanding balance: <strong>{{ outstanding|peso }}</strong></p>
+<div class="table-wrap card">
+<table>
+  <thead><tr><th>Order No.</th><th>Customer</th><th>Laundry</th><th class="r">Kg</th><th>Service</th>
+    <th class="r">Total</th><th class="r">Paid</th><th class="r">Balance</th><th>Payment</th><th>Status</th><th>Date</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr>
+    <td><a href="{{ url_for('order_detail', order_id=r.id) }}"><strong>{{ r.order_no }}</strong></a></td>
+    <td>{{ r.customer }}</td><td>{{ r.laundry_type }}</td><td class="r">{{ '%.2f'|format(r.weight_kg) }}</td>
+    <td>{{ r.service }}</td><td class="r">{{ r.total|peso }}</td><td class="r">{{ r.paid|peso }}</td>
+    <td class="r">{{ balance_of(r)|peso }}</td>
+    <td><span class="badge pay-{{ pay_status(r.total, r.paid)|lower }}">{{ pay_status(r.total, r.paid) }}</span></td>
+    <td><span class="badge st-{{ r.status|replace(' ', '-')|lower }}">{{ r.status }}</span></td>
+    <td>{{ r.order_date }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="11" class="muted center">No orders found.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

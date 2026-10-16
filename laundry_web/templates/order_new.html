@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}New Order{% endblock %}
+{% block content %}
+<div class="page-head"><h1>New Laundry Order</h1><a class="btn ghost" href="{{ url_for('orders') }}">← Back</a></div>
+<form method="post" class="card form-grid" id="orderForm">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <label>Customer name
+    <input name="name" id="name" list="customerList" value="{{ form.get('name','') }}" required autocomplete="off">
+    <datalist id="customerList">{% for c in customers %}<option value="{{ c.name }}">{% endfor %}</datalist>
+  </label>
+  <label>Contact number <input name="contact" id="contact" value="{{ form.get('contact','') }}"></label>
+  <label>Laundry type
+    <select name="laundry_type">
+      {% for t in laundry_types %}<option {{ 'selected' if form.get('laundry_type') == t }}>{{ t }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Weight (kg) <input name="weight" id="weight" type="number" step="0.01" min="0.01" value="{{ form.get('weight','') }}" required></label>
+  <label>Service type
+    <select name="service_id" id="service" required>
+      <option value="">— choose —</option>
+      {% for s in services %}
+      <option value="{{ s.id }}" {{ 'selected' if form.get('service_id') == s.id|string }}>{{ s.name }} — {{ s.price_per_kg|peso }}/kg</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Order date <input name="order_date" type="date" value="{{ form.get('order_date', today) }}" required></label>
+  <div class="total-box">Total <strong id="total">₱0.00</strong></div>
+  <label>Initial payment (optional) <input name="pay_amount" type="number" step="0.01" min="0" value="{{ form.get('pay_amount','') }}"></label>
+  <label>Payment method
+    <select name="pay_method">{% for m in methods %}<option {{ 'selected' if form.get('pay_method') == m }}>{{ m }}</option>{% endfor %}</select>
+  </label>
+  <div class="full"><button class="btn primary">Save Order</button></div>
+</form>
+<script>
+  const prices = {{ prices|tojson }};
+  const customers = {{ customers|tojson }};
+  const weight = document.getElementById('weight'), service = document.getElementById('service');
+  function recalc() {
+    const w = parseFloat(weight.value), p = prices[service.value];
+    const total = (w > 0 && p !== undefined) ? Math.round(w * p * 100) / 100 : 0;
+    document.getElementById('total').textContent = '₱' + total.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+  weight.addEventListener('input', recalc); service.addEventListener('change', recalc); recalc();
+  document.getElementById('name').addEventListener('change', e => {
+    const c = customers.find(c => c.name === e.target.value);
+    if (c) document.getElementById('contact').value = c.contact;
+  });
+</script>
+{% endblock %}

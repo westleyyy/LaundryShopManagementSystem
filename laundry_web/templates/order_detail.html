@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ o.order_no }}{% endblock %}
+{% block content %}
+{% set bal = balance_of(o) %}
+<div class="page-head">
+  <h1>{{ o.order_no }}</h1>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('receipt', order_id=o.id) }}" target="_blank">🧾 Receipt / Print</a>
+    <a class="btn ghost" href="{{ url_for('orders') }}">← Orders</a>
+  </div>
+</div>
+
+<div class="stepper card">
+  {% set cur = statuses.index(o.status) %}
+  {% for s in statuses %}
+  <div class="step {{ 'done' if loop.index0 < cur }} {{ 'current' if loop.index0 == cur }}"><span>{{ loop.index }}</span>{{ s }}</div>
+  {% endfor %}
+</div>
+
+<div class="grid2">
+  <section class="card">
+    <h2>Order details</h2>
+    <dl>
+      <dt>Customer</dt><dd>{{ o.customer }}{% if o.contact %} · {{ o.contact }}{% endif %}</dd>
+      <dt>Laundry type</dt><dd>{{ o.laundry_type }}</dd>
+      <dt>Service</dt><dd>{{ o.service }} ({{ o.price_per_kg|peso }}/kg)</dd>
+      <dt>Weight</dt><dd>{{ '%.2f'|format(o.weight_kg) }} kg</dd>
+      <dt>Order date</dt><dd>{{ o.order_date }}</dd>
+      <dt>Claimed on</dt><dd>{{ o.claimed_date or '—' }}</dd>
+      <dt>Received by</dt><dd>{{ o.staff or '—' }}</dd>
+    </dl>
+    <h2>Update status</h2>
+    <form method="post" action="{{ url_for('order_status', order_id=o.id) }}" class="inline-form"
+          onsubmit="return confirmClaim(this)">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <select name="status">{% for s in statuses %}<option {{ 'selected' if s == o.status }}>{{ s }}</option>{% endfor %}</select>
+      <button class="btn">Apply</button>
+      {% if o.status != 'Claimed' %}<button class="btn primary" name="action" value="next">Next stage ▶</button>{% endif %}
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Payments</h2>
+    <div class="money">
+      <div><small>Total</small><strong>{{ o.total|peso }}</strong></div>
+      <div><small>Paid</small><strong>{{ o.paid|peso }}</strong></div>
+      <div><small>Balance</small><strong class="{{ 'due' if bal > 0 else 'ok' }}">{{ bal|peso }}</strong></div>
+    </div>
+    <p><span class="badge pay-{{ pay_status(o.total, o.paid)|lower }}">{{ pay_status(o.total, o.paid) }}</span></p>
+    {% if payments %}
+    <table class="mini">
+      <thead><tr><th>Date</th><th>Method</th><th class="r">Amount</th></tr></thead>
+      <tbody>{% for p in payments %}<tr><td>{{ p.paid_date[:16] }}</td><td>{{ p.method }}</td><td class="r">{{ p.amount|peso }}</td></tr>{% endfor %}</tbody>
+    </table>
+    {% else %}<p class="muted">No payments recorded yet.</p>{% endif %}
+    {% if bal > 0 %}
+    <h3>Record a payment</h3>
+    <form method="post" action="{{ url_for('order_payment', order_id=o.id) }}" class="inline-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input name="amount" type="number" step="0.01" min="0.01" max="{{ bal }}" value="{{ '%.2f'|format(bal) }}" required>
+      <select name="method">{% for m in methods %}<option>{{ m }}</option>{% endfor %}</select>
+      <button class="btn primary">Record</button>
+    </form>
+    {% endif %}
+  </section>
+</div>
+
+{% if user.role == 'admin' %}
+<form method="post" action="{{ url_for('order_delete', order_id=o.id) }}" class="danger-zone"
+      onsubmit="return confirm('Permanently delete this order and its payments?')">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <button class="btn danger small">Delete order</button>
+</form>
+{% endif %}
+<script>
+  const balance = {{ bal }};
+  function confirmClaim(form) {
+    if (form.status.value === 'Claimed' && balance > 0.004)
+      return confirm('This order still has a balance of ₱' + balance.toFixed(2) + '. Mark as Claimed anyway?');
+    return true;
+  }
+</script>
+{% endblock %}

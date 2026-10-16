@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Reports &amp; Analytics</h1></div>
+<form method="get" class="filters card">
+  <label>Day <input type="date" name="day" value="{{ day }}"></label>
+  <label>Month <input type="month" name="month" value="{{ month }}"></label>
+  <button class="btn primary">Generate</button>
+</form>
+<div class="grid2">
+  {% for title, d in [('Daily sales — ' ~ day, daily), ('Monthly revenue — ' ~ month, monthly)] %}
+  <section class="card">
+    <h2>{{ title }}</h2>
+    <div class="money four">
+      <div><small>Orders received</small><strong>{{ d.orders }}</strong></div>
+      <div><small>Total billed</small><strong>{{ d.billed|peso }}</strong></div>
+      <div><small>Collected (revenue)</small><strong class="ok">{{ d.collected|peso }}</strong></div>
+      <div><small>Completed orders</small><strong>{{ d.completed }}</strong></div>
+    </div>
+  </section>
+  {% endfor %}
+</div>
+<div class="grid2">
+  <section class="card table-wrap">
+    <h2>Daily breakdown ({{ month }})</h2>
+    <table>
+      <thead><tr><th>Date</th><th class="r">Orders</th><th class="r">Billed</th><th class="r">Collected</th></tr></thead>
+      <tbody>{% for d, v in breakdown %}<tr><td>{{ d }}</td><td class="r">{{ v.orders }}</td><td class="r">{{ v.billed|peso }}</td><td class="r">{{ v.collected|peso }}</td></tr>
+      {% else %}<tr><td colspan="4" class="muted center">No activity this month.</td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
+  <section class="card table-wrap">
+    <h2>Completed (claimed) orders — {{ month }}</h2>
+    <table>
+      <thead><tr><th>Order No.</th><th>Customer</th><th class="r">Total</th><th>Claimed</th></tr></thead>
+      <tbody>{% for o in completed %}<tr><td><a href="{{ url_for('order_detail', order_id=o.id) }}">{{ o.order_no }}</a></td><td>{{ o.customer }}</td><td class="r">{{ o.total|peso }}</td><td>{{ o.claimed_date }}</td></tr>
+      {% else %}<tr><td colspan="4" class="muted center">No claimed orders this month.</td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="login-card card">
+  <h1>🧺 Laundry Shop</h1>
+  <p class="muted">Management System</p>
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Username <input name="username" autofocus required autocomplete="username"></label>
+    <label>Password <input name="password" type="password" required autocomplete="current-password"></label>
+    <button class="btn primary block">Log In</button>
+  </form>
+</div>
+{% endblock %}
